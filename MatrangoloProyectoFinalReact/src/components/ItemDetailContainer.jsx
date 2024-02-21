@@ -1,32 +1,42 @@
 import { useState, useEffect } from 'react';
 import ItemDetail from './ItemDetail';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../services/firebase/firebaseConfig";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from '../services/firebase/firebaseConfig';
 
 const ItemDetailContainer = () => {
     const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
     const { itemId } = useParams();
 
     useEffect(() => {
-        const d = doc(db, "items", itemId);
+        const getProduct = async () => {
+            try {
+                const q = query(collection(db, "items"), where("id", "==", Number(itemId)));
+                const querySnapshot = await getDocs(q);
 
-        getDoc(d)
-            .then(snapshot => {
-                if (snapshot.exists()) {
-                    setProduct({ id: snapshot.id, ...snapshot.data() });
+                if (!querySnapshot.empty) {
+                    const docSnap = querySnapshot.docs[0]; 
+                    setProduct({ id: docSnap.id, ...docSnap.data() });
                 } else {
-                    console.error("Document not found");
+                    console.log("Documento no encontrado!");
                 }
-            })
-            .catch(error => {
-                console.error(error);
-            });
+            } catch (error) {
+                console.error("Error encontrando documento:", error);
+            }
+            setLoading(false);
+        };
+
+        getProduct();
     }, [itemId]);
 
+    if (loading) {
+        return <div>Cargando detalles del producto🎮🕹️</div>;
+    }
+
     return (
-        <div className="container my-4 px-4" style={{ maxWidth: '480px' }}>
-            <ItemDetail {...product} />
+        <div>
+            {product ? <ItemDetail item={product} /> : <div>Producto no encontrado👾</div>}
         </div>
     );
 };

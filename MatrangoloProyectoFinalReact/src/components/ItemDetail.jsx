@@ -1,45 +1,35 @@
-import { useContext, useState } from 'react';
-import ItemCount from './ItemCount';
-import {Link} from "react-router-dom"
-import { CartContext } from './context/CartContext';
+import { useContext } from "react";
+import { CartContext } from "./context/CartContext";
+import ItemCount from "./ItemCount";
 
-const ItemDetail = ({ id, name, img, category, description, price, stock }) => {
-  const [quantityAdded, setQuantityAdded] = useState (0)
+const ItemDetail = ({ item }) => {
+  const { addItem } = useContext(CartContext);
 
-  const { addItem } = useContext(CartContext)
-
-  const handleOnAdd = (quantity) => {
-    setQuantityAdded(quantity)
-
-    const item = {
-      id, name, price
-    }
-    addItem(item,quantity)
-  }
+  const onAdd = (quantity) => {
+    console.log(`Agregando ${quantity} de ${item.name} al carrito`);
+    addItem(item, quantity);
+  };
 
   return (
-    <article className="card mx-auto my-3">
-      <header className="card-header bg-light text-center">
-        <h2 className="h5 mb-0">{name}</h2>
-      </header>
-      <img src={img} alt={name} className="card-img-top" style={{ height: '200px', objectFit: 'contain' }} />
-      <div className="card-body text-center">
-        <p className="text-muted">Categoría: {category}</p>
-        <p className="text-muted">Descripción: {description}</p>
-        <p className="text-muted">Precio: ${price}</p>
+    <div className="container mt-5">
+      <div className="card">
+        <div className="row g-0">
+          <div className="col-md-6">
+            <img src={item.img} alt={item.name} className="img-fluid rounded-start" />
+          </div>
+          <div className="col-md-6">
+            <div className="card-body">
+              <h5 className="card-title">{item.name}</h5>
+              <p className="card-text">{item.description}</p>
+              <p className="card-text"><small className="text-muted">Categoría: {item.category}</small></p>
+              <h3 className="my-3">${item.price}</h3>
+              <ItemCount stock={item.stock} initial={1} onAdd={onAdd} />
+            </div>
+          </div>
+        </div>
       </div>
-      <footer className="ItemFooter card-footer text-center">
-        {
-          quantityAdded > 0 ? (
-        <Link to= "/cart" className="Option btn btn-success btn-block mt-3">Terminar Compra</Link>
-        ) : (
-          <ItemCount initial={1} stock={stock} onAdd={(handleOnAdd)}/>
-          ) 
-        }
-      </footer>
-    </article>
+    </div>
   );
 };
 
 export default ItemDetail;
-
